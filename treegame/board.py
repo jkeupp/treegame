@@ -2,6 +2,15 @@ import pygame; pg = pygame
 import numpy; np = numpy
 import collections
 import hexy as hx
+import os
+import uuid
+
+from . import util
+from . import settings
+from . import context
+
+#from .lib import TreeSprite, Callback, draw_on_move, draw_until_deregister, drop_tree
+from .lib import * 
 from .example_hex import  make_hex_surface, HexTile, Selection, CyclicInteger, ClampedInteger
 
 # the hexagonal coordinate system: 
@@ -26,51 +35,174 @@ COLORS = np.array([
     [85, 163, 193],   # sky blue
 ])
 
-RED   = (255,0,0)
-GREEN = (0,255,0)
-BLUE  =  (0,0,255)
-BACKGROUND = (188,238,104)
+RED   = [255,0,0]
+GREEN = [0,255,0]
+BLUE  =  [0,0,255]
+BACKGROUND = [188,238,104]
 
 GREEN2 = [141, 207, 104]
 
-P1= (61,89,171)
-P2= (238,154,0)
-P3= (0,238,118)
-P4= (69,139,0)
+P1= [61,89,171]
+P2= [238,154,0]
+P3= [200,25,118]
+P4= [69,139,0]
 
-Point = collections.namedtuple("Point", ["x", "y"])
-#Orientation = collections.namedtuple("Orientation", ["f0", "f1", "f2", "f3", "b0", "b1", "b2", "b3", "start_angle"])
-#layout = Orientation(math.sqrt(3.0), math.sqrt(3.0) / 2.0, 0.0, 3.0 / 2.0, math.sqrt(3.0) / 3.0, -1.0 / 3.0, 0.0, 2.0 / 3.0, 0.5)
+PLAYER_COLORS = {0:P1,
+                 1:P2,
+                 2:P3,
+                 3:P4}
 
 class board(object):
-    def __init__(self,n=3):
-        self.create_board(n=n)
+    def __init__(self,main_instance):
+        self.main = main_instance
+        self.main.board = self
+        self.create_board(n=settings.board_size_radius)
         return
+    
+    @property
+    def players(self):
+        return self.main.players
 
     def create_board(self,n=3):
         self.field_range=n
-        self.field = HexField()
+        self.field = HexField(self.main)
         return
+
+    def check_valid_tree_coord(self,pos,tree):
+        player = self.main.current_player
+        # 0-> 1, 1->2, 2-> 3
+        
+        # 0 in neighborhood and at the edges
+        hex_pos = self.field.get_hex_point(pos)
+        if numpy.sum(numpy.abs(hex_pos)) < self.field.max_coord*2:
+            return hex_pos
+        else:
+            return False
+
+    def add_tree(self,cubepos,tree): # tree must be the tree instance already
+        tree.add_to_board(cubepos)
+        #tree.
 
 class HUD(object):
-    def __init__(self,):
+    def __init__(self,main_instance,size,pos):
+        self.main = main_instance
+        self.main.gui.hud = self
+        self.size = numpy.array(size,dtype='int')
+        self.pos = numpy.array(pos,dtype='int')
+        self.background_image = pygame.image.load("/home/julian/sandbox/treegame/images/hud.png")
+        self.dx_sun = settings.sun_box_size / (len(self.players) +1)
+        self.dx_treerow = settings.tree_row_height / (len(self.players) +1)
+        self.make_tree_sprites()
         return
 
+    @property
+    def screen(self):
+        return self.main.gui.screen
+
+    @property
+    def players(self):
+        return self.main.players
+
+    @property
+    def gui(self):
+        return self.main.gui
+
+    def make_tree_sprites(self):
+        self.seedsprites   =  {i:TreeSprite(img,self.pos+settings.hud_tree_seedpos)   for i, img in self.gui.seedlings.items()}
+        self.smallsprites  =  {i:TreeSprite(img,self.pos+settings.hud_tree_smallpos)  for i, img in self.gui.smalltrees.items()}
+        self.mediumsprites =  {i:TreeSprite(img,self.pos+settings.hud_tree_mediumpos) for i, img in self.gui.mediumtrees.items()}
+        self.largesprites  =  {i:TreeSprite(img,self.pos+settings.hud_tree_largepos)  for i, img in self.gui.largetrees.items()}
+
     def draw(self):
-        #
+        active_player = self.main.current_player
+        self.screen.blit(self.background_image,self.pos)
+        self.draw_sunpoints(active_player)
+        self.draw_seedling_box(active_player)
+        self.draw_smalltree_box(active_player)
+        self.draw_mediumtree_box(active_player)
+        self.draw_largetree_box(active_player)
+        pass
+
+    def draw_sunpoints(self,player):
+        for i,pk in enumerate(self.players):
+            p = self.players[pk]
+            text = self.gui.font.render('%s: %2d' % (p.name,p.sunpoints),
+                                        False,PLAYER_COLORS[i])      
+            if p.name == player.name:
+                text.set_alpha(255)
+            else:
+                text.set_alpha(95)
+            pos = (int(numpy.round(self.pos[0]+10)), 
+                   int(numpy.round(self.pos[1]+(i+1) * self.dx_sun - text.get_height()/2.0)))
+            self.screen.blit(text,pos)
+    
+    def draw_seedling_box(self,player):
+        self.seedsprites[player.idx].draw(self.screen)
+        self.main.context.onMouseDown['seedlingCallback'] = self.set_seedling_callback
+
+    def draw_smalltree_box(self,player):
+        self.smallsprites[player.idx].draw(self.screen)
+    
+    def draw_mediumtree_box(self,player):
+        self.mediumsprites[player.idx].draw(self.screen)   
+    
+    def draw_largetree_box(self,player):
+        self.largesprites[player.idx].draw(self.screen) 
+    
+    def set_seedling_callback(self,event,main):
+        #import pdb; pdb.set_trace()
+        if self.seedsprites[self.main.current_player.idx].rect.collidepoint(event.pos) is 0: return
+        #ok, we got it! let's do something
+        move_callback_identifier = uuid.uuid4()
+        # check if we have one available -- TBI
+
+        # register on_mouse_move for drawer -- TBI
+        self.main.context.onMouseMove[move_callback_identifier] = Callback(
+            draw_until_deregister, args = (move_callback_identifier,), kwargs={
+                'item':self.gui.seedlings[self.main.current_player.idx],
+                }
+            )
+        self.main.context.onMouseMove[move_callback_identifier](event,main)
+        pygame.mouse.set_visible(0)
+        # register on_mouse_down to check of seedling can be placed there and to cleanup
+        self.main.context.onMouseUp[move_callback_identifier] =\
+            Callback(drop_tree, args = (move_callback_identifier,),
+            kwargs = {'tree':self.main.current_player.available[0][0]})
+            
 
 
 
 class GUI(object):
-    def __init__(self,uboard,nx=1200, ny=800):
-        self.board = uboard
+    def __init__(self,main_instance,nx=1200, ny=800):
+        self.main = main_instance
+        self.main.gui = self
+        self.image_dir = '/home/julian/sandbox/treegame/images/' # sry for hardcoded path!
+        self.board = self.main.board
+        self.board.field.gui = self
         self.res   = (nx,ny)
         self.woods = (ny,ny)
         self.woods_center = (ny/2,ny/2)
-        self.hudpos   = (nx-ny,ny)
+        self.draw_queue = []
+        self.permanent_draw_queue = {}
         self.create_window()     
+        self.load_tree_images()
+        self.hud = HUD(self.main,(nx-ny,ny), (ny,0)) # main, hudsize, hudpos 
         self.draw_board()   
         return
+
+    def load_tree_images(self):
+        self.seedling = pg.image.load(self.image_dir+'tree0_90.png').convert_alpha()
+        self.smalltree = pg.image.load(self.image_dir+'tree1_90.png').convert_alpha()
+        self.mediumtree = pg.image.load(self.image_dir+'tree2_90.png').convert_alpha()
+        self.largetree = pg.image.load(self.image_dir+'tree3_90.png').convert_alpha()
+        self.seedlings = {i:util.colorize(self.seedling,PLAYER_COLORS[i]) for i in range(len(self.board.players))}
+        self.smalltrees = {i:util.colorize(self.smalltree,PLAYER_COLORS[i]) for i in range(len(self.board.players))}
+        self.mediumtrees = {i:util.colorize(self.mediumtree,PLAYER_COLORS[i]) for i in range(len(self.board.players))}
+        self.largetrees = {i:util.colorize(self.largetree,PLAYER_COLORS[i]) for i in range(len(self.board.players))}
+        self.usertrees = {0:self.seedlings,
+                          1:self.smalltrees,
+                          2:self.mediumtrees,
+                          3:self.largetrees}
 
     def create_window(self):
         self.screen = pygame.display.set_mode(self.res)
@@ -79,12 +211,27 @@ class GUI(object):
         pygame.mouse.set_visible(1)
         self.fieldwidth = (self.woods[1] - 2*HORIZONTAL_MARGIN ) / (self.board.field_range*2) #integer division
 
+    def draw(self):
+        self.draw_board()
+        self.draw_hud()
+        self.draw_draw_queue()
+
     def draw_board(self):
         self.screen.fill(BACKGROUND)
         self.board.field.draw(self.screen,self.font)
         return
 
-    def draw_hud()
+    def draw_hud(self):
+        self.hud.draw()
+        return
+
+    def draw_draw_queue(self):
+        for qitem in self.draw_queue:
+            qitem.draw()
+        self.draw_queue = []
+
+        for qkey,qitem in self.permanent_draw_queue.items():
+            qitem.draw()
 
     def render(self):
         pygame.display.flip()
@@ -101,7 +248,9 @@ class GUI(object):
 
 
 class HexField(object):
-    def __init__(self,size=(800,800),hex_radius=56,caption = 'treegame'):
+    def __init__(self,main,size=(800,800),hex_radius=56,caption = 'treegame',gui=None):
+        self.main = main
+        self.gui = gui
         self.caption = caption
         self.size = np.array(size)
         self.width, self.height = self.size
@@ -118,18 +267,27 @@ class HexField(object):
                 (255, 255, 255), 
                 hollow=True)
         self.selection_type = CyclicInteger(3, 0, 3)
-        self.clicked_hex = np.array([0, 0, 0])
 
         # Get all possible coordinates within `self.max_coord` as radius.
-        self.spiral_coordinates = hx.get_spiral(np.array((0, 0, 0)), 1, self.max_coord)
-        self.axial_coordinates = hx.cube_to_axial(self.spiral_coordinates)
-
+        self.cube_coordinates = numpy.array(hx.get_spiral(np.array((0, 0, 0)), 1, self.max_coord),dtype='int')
+        self.axial_coordinates = hx.cube_to_axial(self.cube_coordinates)
+        self.ntiles = self.cube_coordinates.shape[0]
         hex_tiles = []
         for i,axial in enumerate(self.axial_coordinates):
             hex_tiles.append(HexTile(axial,GREEN2+[255],hex_radius))
         self.hex_tiles = hex_tiles      
         self.hex_map[np.array(self.axial_coordinates)] = hex_tiles  
+        self.cube_indices = {tuple(x):i for i,x in enumerate(self.cube_coordinates)}
+        self.tile_occupation = {i:None for i in range(self.ntiles)}
         return
+
+    def get_hex_point(self,pos):
+        cubepos =hx.pixel_to_cube(np.array([pos - self.center]),self.hex_radius)
+        #import pdb; pdb.set_trace()
+        return numpy.array(cubepos[0],dtype='int')
+
+    def get_cartesian_point(self,cubepos):
+        return hx.cube_to_pixel(cubepos.reshape((1,3)),self.hex_radius)[0]
 
     def draw(self,main_surf,font):
         # show all hexes
@@ -146,26 +304,25 @@ class HexField(object):
             text = font.render(text, False, (0, 0, 0))
             text.set_alpha(160)
             text_pos = hexagon.get_position() + self.center
-            text_pos -= (text.get_width() / 2, text.get_height() / 2)
+            text_pos -= (text.get_width() / 2, text.get_height() / 2 + 33)
+            idx = self.cube_indices[tuple(hexagon.cube_coordinates[0])]
+
             main_surf.blit(text, text_pos)
-        
-        
-        
+        for idx in range(self.ntiles):
+            if self.tile_occupation[idx] is not None:
+                self.tile_occupation[idx].draw()
 
 
-### draw routines
-# using axial coordinates!
-class field(object):
-    def __init__(self,x,y,obj=None,belongs=None):
-        self.pos = (x,y)
-        self.x,self.y = x,y
-        self.obj = obj
-        self.belongs=belongs
-        return
 
-    def dist(self,other):
-        return geo.hex_distance()
-        #return abs(self.x-other.x) + abs(self.y - other.y) + abs(self.z - other.z) / 2
-    
-    def distvec():
-        pass
+
+
+
+
+
+
+
+
+
+
+
+

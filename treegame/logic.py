@@ -2,8 +2,8 @@ import pygame
 
 
 class logic(object):
-    def __init__(self,nplayers=2):
-        self.nplayers  = nplayers
+    def __init__(self):
+        self.state = 'initialized'
         return
 
     def init_game(self):
@@ -13,4 +13,4 @@ class logic(object):
 
     def default_settings(self):
         self.nrounds=3
-        self.
+        return
