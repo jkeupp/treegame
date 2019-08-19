@@ -39,6 +39,7 @@ RED   = [255,0,0]
 GREEN = [0,255,0]
 BLUE  =  [0,0,255]
 BACKGROUND = [188,238,104]
+BLACK = [0,0,0]
 
 GREEN2 = [141, 207, 104]
 
@@ -121,6 +122,7 @@ class HUD(object):
         self.draw_smalltree_box(active_player)
         self.draw_mediumtree_box(active_player)
         self.draw_largetree_box(active_player)
+        self.draw_stats()
         pass
 
     def draw_sunpoints(self,player):
@@ -139,24 +141,54 @@ class HUD(object):
     def draw_seedling_box(self,player):
         self.seedsprites[player.idx].draw(self.screen)
         self.main.context.onMouseDown['seedlingCallback'] = self.set_seedling_callback
+    
+    def draw_stats(self):
+        player = self.main.current_player
+        labels = ['available','stack','graveyard']
+        #import pdb; pdb.set_trace()
+        for i,label in enumerate(labels): # i = kind_idx
+            for j in range(4): # j = tree_idx
+                label_txt = self.gui.font.render(label, False, BLACK)
+                center = settings.hud_tree_labels[i,j,:] # tree_idx, kind_idx
+                pos = util.get_pos_to_center_text(label_txt,center) 
+                self.screen.blit(label_txt,pos)
+                for k,pk in enumerate(self.players): # k = player_idx
+                    p = self.players[pk]
+                    text = self.gui.font.render(str(p.n(j,label)),False,PLAYER_COLORS[k])  
+                    center2 = center + settings.hud_tree_labels_player_offset[k]
+                    pos = util.get_pos_to_center_text(text,center2) 
+                    self.screen.blit(text,pos)
+        
+        # available
+        # stack 
+        # gone
+
+    def draw_seedling_box(self,player):
+        self.seedsprites[player.idx].draw(self.screen)
+        self.main.context.onMouseDown['seedlingCallback'] = self.set_seedling_callback
 
     def draw_smalltree_box(self,player):
         self.smallsprites[player.idx].draw(self.screen)
+        self.main.context.onMouseDown['smalltreeCallback'] = self.set_smalltree_callback
     
     def draw_mediumtree_box(self,player):
         self.mediumsprites[player.idx].draw(self.screen)   
+        self.main.context.onMouseDown['mediumtreeCallback'] = self.set_mediumtree_callback
     
     def draw_largetree_box(self,player):
         self.largesprites[player.idx].draw(self.screen) 
+        self.main.context.onMouseDown['largetreeCallback'] = self.set_largetree_callback
     
     def set_seedling_callback(self,event,main):
         #import pdb; pdb.set_trace()
         if self.seedsprites[self.main.current_player.idx].rect.collidepoint(event.pos) is 0: return
+        if self.main.current_player.n(0,'available') == 0: 
+            # TBI: drop a note that it's not possible
+            print('no more seedlings available!')
+            return
         #ok, we got it! let's do something
         move_callback_identifier = uuid.uuid4()
-        # check if we have one available -- TBI
-
-        # register on_mouse_move for drawer -- TBI
+        # register on_mouse_move for drawer 
         self.main.context.onMouseMove[move_callback_identifier] = Callback(
             draw_until_deregister, args = (move_callback_identifier,), kwargs={
                 'item':self.gui.seedlings[self.main.current_player.idx],
@@ -168,9 +200,72 @@ class HUD(object):
         self.main.context.onMouseUp[move_callback_identifier] =\
             Callback(drop_tree, args = (move_callback_identifier,),
             kwargs = {'tree':self.main.current_player.available[0][0]})
-            
 
+    def set_smalltree_callback(self,event,main):
+        #import pdb; pdb.set_trace()
+        if self.smallsprites[self.main.current_player.idx].rect.collidepoint(event.pos) is 0: return
+        if self.main.current_player.n(1,'available') == 0: 
+            # TBI: drop a note that it's not possible
+            print('no more smalltrees available!')
+            return
+        #ok, we got it! let's do something
+        move_callback_identifier = uuid.uuid4()
+        # register on_mouse_move for drawer 
+        self.main.context.onMouseMove[move_callback_identifier] = Callback(
+            draw_until_deregister, args = (move_callback_identifier,), kwargs={
+                'item':self.gui.smalltrees[self.main.current_player.idx],
+                }
+            )
+        self.main.context.onMouseMove[move_callback_identifier](event,main)
+        pygame.mouse.set_visible(0)
+        # register on_mouse_down to check of seedling can be placed there and to cleanup
+        self.main.context.onMouseUp[move_callback_identifier] =\
+            Callback(drop_tree, args = (move_callback_identifier,),
+            kwargs = {'tree':self.main.current_player.available[1][0]})
 
+    def set_mediumtree_callback(self,event,main):
+        #import pdb; pdb.set_trace()
+        if self.mediumsprites[self.main.current_player.idx].rect.collidepoint(event.pos) is 0: return
+        if self.main.current_player.n(2,'available') == 0: 
+            # TBI: drop a note that it's not possible
+            print('no more mediumtrees available!')
+            return
+        #ok, we got it! let's do something
+        move_callback_identifier = uuid.uuid4()
+        # register on_mouse_move for drawer 
+        self.main.context.onMouseMove[move_callback_identifier] = Callback(
+            draw_until_deregister, args = (move_callback_identifier,), kwargs={
+                'item':self.gui.mediumtrees[self.main.current_player.idx],
+                }
+            )
+        self.main.context.onMouseMove[move_callback_identifier](event,main)
+        pygame.mouse.set_visible(0)
+        # register on_mouse_down to check of seedling can be placed there and to cleanup
+        self.main.context.onMouseUp[move_callback_identifier] =\
+            Callback(drop_tree, args = (move_callback_identifier,),
+            kwargs = {'tree':self.main.current_player.available[2][0]})
+
+    def set_largetree_callback(self,event,main):
+        #import pdb; pdb.set_trace()
+        if self.largesprites[self.main.current_player.idx].rect.collidepoint(event.pos) is 0: return
+        if self.main.current_player.n(3,'available') == 0: 
+            # TBI: drop a note that it's not possible
+            print('no more largetrees available!')
+            return
+        #ok, we got it! let's do something
+        move_callback_identifier = uuid.uuid4()
+        # register on_mouse_move for drawer 
+        self.main.context.onMouseMove[move_callback_identifier] = Callback(
+            draw_until_deregister, args = (move_callback_identifier,), kwargs={
+                'item':self.gui.largetrees[self.main.current_player.idx],
+                }
+            )
+        self.main.context.onMouseMove[move_callback_identifier](event,main)
+        pygame.mouse.set_visible(0)
+        # register on_mouse_down to check of seedling can be placed there and to cleanup
+        self.main.context.onMouseUp[move_callback_identifier] =\
+            Callback(drop_tree, args = (move_callback_identifier,),
+            kwargs = {'tree':self.main.current_player.available[3][0]})
 
 class GUI(object):
     def __init__(self,main_instance,nx=1200, ny=800):
@@ -181,7 +276,7 @@ class GUI(object):
         self.board.field.gui = self
         self.res   = (nx,ny)
         self.woods = (ny,ny)
-        self.woods_center = (ny/2,ny/2)
+        self.woods_center = numpy.array([ny/2,ny/2])
         self.draw_queue = []
         self.permanent_draw_queue = {}
         self.create_window()     

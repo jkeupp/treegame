@@ -27,3 +27,8 @@ def colorize(image, newColor):
     image.fill(newColor[0:3] + [0,], None, pygame.BLEND_RGBA_ADD)
 
     return image
+
+def get_pos_to_center_text(text,center):
+    pos = numpy.array([int(numpy.round(center[0]-text.get_width()/2.0)), 
+            int(numpy.round(center[1] - text.get_height()/2.0))],dtype='int')
+    return pos

@@ -2,6 +2,7 @@ import pygame; pg= pygame
 import numpy; np = numpy
 import hexy as hx
 from . import settings
+from . import util
 import pygame
 
 
@@ -10,34 +11,33 @@ class Player(object):
     def __init__(self,main,name,idx):
         # init variables
         self.main = main
-        self.sunpoints = 1 
+        self.sunpoints = settings.num_sunpoints
         self.idx = idx
         self.name = name
         self.trees = {}
         self.position = None
         self.init_trees()
-    
+
     def init_trees(self):
         """ Initializes the players' Trees
         """
-        #default settings hard coded
-        # five seeds, one available, rest to be bought
-        self.trees[0] = [Tree(self,0,0,status='available')]
-        for i in range(4):
-            self.trees[0].append(Tree(self,0,i+1,status='stack'))
-        # eight lvl 1 trees, four available
-        self.trees[1] = [Tree(self,1,0,status='available')]
-        for i in range(3):
-            self.trees[1].append(Tree(self,1,i+1,status='available'))
-        for i in range(4):
-            self.trees[1].append(Tree(self,1,i+4,status='stack'))
-        # four lvl 2 trees, one available
-        self.trees[2] = [Tree(self,2,0,status='available')]
-        for i in range(3):
-            self.trees[2].append(Tree(self,2,i+1,status='stack'))
-        # two lvl 2 trees, none available
-        self.trees[3] = [Tree(self,3,0,status='stack'),Tree(self,3,0,status='stack')]
+        # get number of starting trees and total trees from settingms
+        self.trees[0] =  [Tree(self,0,i,status='available') for i in range(settings.num_start_seedlings)]
+        self.trees[0] += [Tree(self,0,i+1,status='stack')   for i in range(settings.num_start_seedlings, settings.num_seedlings)]
+        self.trees[1] =  [Tree(self,1,i,status='available') for i in range(settings.num_start_smalltrees)]
+        self.trees[1] += [Tree(self,1,i+1,status='stack')   for i in range(settings.num_start_smalltrees, settings.num_smalltrees)]
+        self.trees[2] =  [Tree(self,2,i,status='available') for i in range(settings.num_start_mediumtrees)]
+        self.trees[2] += [Tree(self,2,i+1,status='stack')   for i in range(settings.num_start_mediumtrees, settings.num_mediumtrees)]
+        self.trees[3] =  [Tree(self,3,i,status='available') for i in range(settings.num_start_largetrees)]
+        self.trees[3] += [Tree(self,3,i+1,status='stack')   for i in range(settings.num_start_largetrees, settings.num_largetrees)]
         return
+
+    def n(self,treetype,statustype):
+        c = 0
+        for x in self.trees[treetype]:
+            if x.status == statustype:
+                c += 1
+        return c
 
     @property
     def available(self):
@@ -82,12 +82,14 @@ class Tree(object):
         if mode  == 'cube':
             return self.position
         elif mode == 'cartesian':
-            return self.main.board.field.get_cartesian_point(self.position)
+            return self.main.board.field.get_cartesian_point(self.position) + self.main.gui.woods_center 
 
     def draw(self):
         center = self.get_position(mode='cartesian')
-        center = numpy.random.uniform(400,400,(2,))
-        self.main.gui.screen.blit(self.main.gui.usertrees[self.size][self.owner.idx],center)
+        #center = numpy.random.uniform(400,400,(2,))
+        #import pdb; pdb.set_trace()
+        pos = util.get_lt_coords(self.main.gui.usertrees[self.size][self.owner.idx],center)
+        self.main.gui.screen.blit(self.main.gui.usertrees[self.size][self.owner.idx],pos)
     
     def __gt__(self,other):
         return self.idx > other
