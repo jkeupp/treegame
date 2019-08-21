@@ -71,18 +71,22 @@ class board(object):
 
     def check_valid_tree_coord(self,pos,tree):
         player = self.main.current_player
-        # 0-> 1, 1->2, 2-> 3
-        
-        # 0 in neighborhood and at the edges
         hex_pos = self.field.get_hex_point(pos)
-        if numpy.sum(numpy.abs(hex_pos)) < self.field.max_coord*2:
+        if numpy.sum(numpy.abs(hex_pos)) < self.field.max_coord*3:
             return hex_pos
         else:
             return False
 
     def add_tree(self,cubepos,tree): # tree must be the tree instance already
         tree.add_to_board(cubepos)
+        self.main.current_player.sunpoints -= settings.tree_costs[tree.size]
+        #self.main.logic.cycle_players()
         #tree.
+    
+    def let_the_sun_shine(self):
+        # TBI 
+        # Evaluates Trees w.r.t. the current sun position
+        return
 
 class HUD(object):
     def __init__(self,main_instance,size,pos):
@@ -123,6 +127,8 @@ class HUD(object):
         self.draw_mediumtree_box(active_player)
         self.draw_largetree_box(active_player)
         self.draw_stats()
+        self.main.console.draw()
+        self.draw_cycle_button()
         pass
 
     def draw_sunpoints(self,player):
@@ -141,27 +147,6 @@ class HUD(object):
     def draw_seedling_box(self,player):
         self.seedsprites[player.idx].draw(self.screen)
         self.main.context.onMouseDown['seedlingCallback'] = self.set_seedling_callback
-    
-    def draw_stats(self):
-        player = self.main.current_player
-        labels = ['available','stack','graveyard']
-        #import pdb; pdb.set_trace()
-        for i,label in enumerate(labels): # i = kind_idx
-            for j in range(4): # j = tree_idx
-                label_txt = self.gui.font.render(label, False, BLACK)
-                center = settings.hud_tree_labels[i,j,:] # tree_idx, kind_idx
-                pos = util.get_pos_to_center_text(label_txt,center) 
-                self.screen.blit(label_txt,pos)
-                for k,pk in enumerate(self.players): # k = player_idx
-                    p = self.players[pk]
-                    text = self.gui.font.render(str(p.n(j,label)),False,PLAYER_COLORS[k])  
-                    center2 = center + settings.hud_tree_labels_player_offset[k]
-                    pos = util.get_pos_to_center_text(text,center2) 
-                    self.screen.blit(text,pos)
-        
-        # available
-        # stack 
-        # gone
 
     def draw_seedling_box(self,player):
         self.seedsprites[player.idx].draw(self.screen)
@@ -179,6 +164,36 @@ class HUD(object):
         self.largesprites[player.idx].draw(self.screen) 
         self.main.context.onMouseDown['largetreeCallback'] = self.set_largetree_callback
     
+    def draw_stats(self):
+        player = self.main.current_player
+        labels = ['available','stack','board']
+        #import pdb; pdb.set_trace()
+        for i,label in enumerate(labels): # i = kind_idx
+            for j in range(4): # j = tree_idx
+                label_txt = self.gui.font_medium.render(label, False, BLACK)
+                center = settings.hud_tree_labels[i,j,:] # tree_idx, kind_idx
+                pos = util.get_pos_to_center_text(label_txt,center) 
+                self.screen.blit(label_txt,pos)
+                for k,pk in enumerate(self.players): # k = player_idx
+                    p = self.players[pk]
+                    text = self.gui.font_xlarge.render(str(p.n(j,label)),False,PLAYER_COLORS[k])  
+                    center2 = center + settings.hud_tree_labels_player_offset[k]
+                    pos = util.get_pos_to_center_text(text,center2) 
+                    self.screen.blit(text,pos)
+    
+    def draw_cycle_button(self):
+        text = self.gui.font_large.render('DONE',False,PLAYER_COLORS[self.main.current_player.idx])
+        if  'cyclebutton' in self.main.context.onMouseUp.keys():
+            pass
+        else:
+            self.main.context.onMouseUp['cyclebutton'] = Callback(player_cycle_callback)
+            self.main.gui.hud.donerect =  text.get_rect()
+            self.draw_btn_pos = util.get_pos_to_center_text(text,settings.hud_done_btn_pos)
+            self.main.gui.hud.donerect=self.main.gui.hud.donerect.move(self.draw_btn_pos[0],self.draw_btn_pos[1])
+        self.gui.screen.blit(text,self.draw_btn_pos)
+        return
+            
+
     def set_seedling_callback(self,event,main):
         #import pdb; pdb.set_trace()
         if self.seedsprites[self.main.current_player.idx].rect.collidepoint(event.pos) is 0: return
@@ -302,6 +317,9 @@ class GUI(object):
     def create_window(self):
         self.screen = pygame.display.set_mode(self.res)
         self.font = pg.font.SysFont("monospace", 12, True)
+        self.font_medium = pg.font.SysFont("monospace", 18, True)
+        self.font_large = pg.font.SysFont("monospace", 24, True)
+        self.font_xlarge = pg.font.SysFont("monospace", 32, True)
         pygame.display.set_caption(" ### treegame ### ")
         pygame.mouse.set_visible(1)
         self.fieldwidth = (self.woods[1] - 2*HORIZONTAL_MARGIN ) / (self.board.field_range*2) #integer division
@@ -373,8 +391,18 @@ class HexField(object):
         self.hex_tiles = hex_tiles      
         self.hex_map[np.array(self.axial_coordinates)] = hex_tiles  
         self.cube_indices = {tuple(x):i for i,x in enumerate(self.cube_coordinates)}
-        self.tile_occupation = {i:None for i in range(self.ntiles)}
+        self._tile_occupation = {i:None for i in range(self.ntiles)}
         return
+
+    def get_tile_occupation(self,pos):
+        if type(pos) == type(tuple):
+            return self._tile_occupation[self.cube_indices(pos)]
+        else: 
+            return self._tile_occupation[self.get_cube_index(pos)]
+
+    def get_cube_index(self,pos):
+        pos_tupl = tuple(pos)
+        return self.cube_indices[pos_tupl]
 
     def get_hex_point(self,pos):
         cubepos =hx.pixel_to_cube(np.array([pos - self.center]),self.hex_radius)
@@ -404,8 +432,8 @@ class HexField(object):
 
             main_surf.blit(text, text_pos)
         for idx in range(self.ntiles):
-            if self.tile_occupation[idx] is not None:
-                self.tile_occupation[idx].draw()
+            if self._tile_occupation[idx] is not None:
+                self._tile_occupation[idx].draw()
 
 
 

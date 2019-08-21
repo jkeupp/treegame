@@ -18,6 +18,12 @@ class Player(object):
         self.position = None
         self.init_trees()
 
+    def __eq__(self,other):
+        if self.idx == other.idx:
+            return True
+        else:
+            return False
+
     def init_trees(self):
         """ Initializes the players' Trees
         """
@@ -74,7 +80,7 @@ class Tree(object):
     def add_to_board(self,position):
         self.set_position(position)
         self.set_status('board')
-        self.main.board.field.tile_occupation[
+        self.main.board.field._tile_occupation[
             self.main.board.field.cube_indices[tuple(position)]] = self
 
     def get_position(self,mode='cube'):
@@ -141,7 +147,13 @@ class Callback(object):
         #print(30*'#')
         return self.callback_fun(*tmpargs,**self.kwargs)
 
-
+def player_cycle_callback(event,main):
+    # if not, someone possibly drags stuff around and cycle should not trigger
+    # if pygame.mouse.get_visible(): #  becomes available in pygame 2.0.0
+    pos = event.pos
+    if main.gui.hud.donerect.collidepoint(pos): 
+        main.logic.cycle_players()
+    
 def draw_on_move(event,main,item=None,pos=None):
     if pos is None:
         pos = event.pos
@@ -169,9 +181,16 @@ def drop_tree(event,main,uuid,tree=None):
     pygame.mouse.set_visible(1)
     # check if that tree can go there. apply if so -- TBI
     cubepos = main.board.check_valid_tree_coord(event.pos,tree)
-    print(cubepos)
     if cubepos is not False:
-        main.board.add_tree(cubepos,tree)
+        # check if that is actually a valid position based on the current tree positions
+        valid_pos = main.logic.check_valid_tree_pos(cubepos,tree)
+        # check if the player has enough money
+        if main.current_player.sunpoints < settings.tree_costs[tree.size]:
+            main.console('sry, not enough money!')
+        if valid_pos is not False:
+            main.board.add_tree(cubepos,tree)
+    else:
+        main.console('that is not even a field')
     #kill self
     main.context.tobecleaned.append([main.context.onMouseUp, uuid])
     return

@@ -1,14 +1,20 @@
 import pygame
+import time
 from . import board
 from .lib import Player, Tree
 from . import context
-
+from . import logic
+from . import console
+from . import settings
 
 class treegame(object):
     def __init__(self,nplayers=4):
         self.nplayers = nplayers
         self.init_players()
-        self.current_player =self.players[0]
+        self.starting_player = 0
+        self.current_player =self.players[self.starting_player]
+        self.time_zero = time.time()
+        self.settings = settings
         return
 
     def init_players(self):
@@ -19,10 +25,14 @@ class treegame(object):
     def startup(self):
         # initialize board
         pygame.init()
+        self.console = console.console(self)
         self.context = context.context()
+        self.console('context initialized',toscreen=False)
         self.board = board.board(self)
         self.gui = board.GUI(self)
+        self.logic = logic.logic(self)
         self.clock = pygame.time.Clock()
+        self.console('game initialized')
 
     def loop(self):
         ### pygame main loop
