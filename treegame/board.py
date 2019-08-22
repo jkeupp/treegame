@@ -129,6 +129,7 @@ class HUD(object):
         self.draw_stats()
         self.main.console.draw()
         self.draw_cycle_button()
+        self.draw_buy_buttons()
         pass
 
     def draw_sunpoints(self,player):
@@ -192,7 +193,34 @@ class HUD(object):
             self.main.gui.hud.donerect=self.main.gui.hud.donerect.move(self.draw_btn_pos[0],self.draw_btn_pos[1])
         self.gui.screen.blit(text,self.draw_btn_pos)
         return
-            
+
+    def draw_buy_buttons(self):
+        # if one's ablle to buy: player color
+        # if not: gray
+        # show cost 
+        p = self.main.current_player
+        cost_dummy=1
+        text_seed_buy = self.gui.font_medium.render('BUY (%1s)' % (cost_dummy,),False,PLAYER_COLORS[p.idx])
+        text_small_buy = self.gui.font_medium.render('BUY (%1s)' % (cost_dummy,),False,PLAYER_COLORS[p.idx])
+        text_medium_buy = self.gui.font_medium.render('BUY (%1s)' % (cost_dummy,),False,PLAYER_COLORS[p.idx])
+        text_large_buy = self.gui.font_medium.render('BUY (%1s)' % (cost_dummy,),False,PLAYER_COLORS[p.idx])
+        text = {0:text_seed_buy, 1:text_small_buy, 2:text_medium_buy, 3:text_large_buy}
+        if  'buybutton_seed' in self.main.context.onMouseUp.keys():
+            pass
+        else:
+            self.main.context.onMouseUp['buybutton_seed'] = Callback(player_buy_callback,args=(0,))
+            self.main.context.onMouseUp['buybutton_small'] = Callback(player_buy_callback,args=(1,))
+            self.main.context.onMouseUp['buybutton_medium'] = Callback(player_buy_callback,args=(2,))
+            self.main.context.onMouseUp['buybutton_large'] = Callback(player_buy_callback,args=(3,))
+            self.buyrect =  {}; self.buy_btn_pos = {}
+            #text.get_rect()
+            for i in range(4):
+                self.buy_btn_pos[i] = util.get_pos_to_center_text(text[i],settings.hud_buy_btn_pos[i])
+                self.buyrect[i]= text[i].get_rect().move(self.buy_btn_pos[i][0],self.buy_btn_pos[i][1]) 
+        for i in range(4):
+            self.gui.screen.blit(text[i],self.buy_btn_pos[i])
+
+        return
 
     def set_seedling_callback(self,event,main):
         #import pdb; pdb.set_trace()

@@ -153,6 +153,13 @@ def player_cycle_callback(event,main):
     pos = event.pos
     if main.gui.hud.donerect.collidepoint(pos): 
         main.logic.cycle_players()
+
+def player_buy_callback(event,main,treetype):
+    # treetype one of 0, 1, 2 or 3
+    pos = event.pos
+    assert treetype in [0,1,2,3]
+    if main.gui.hud.buyrect[treetype].collidepoint(pos): 
+        main.logic.cycle_players()
     
 def draw_on_move(event,main,item=None,pos=None):
     if pos is None:

@@ -33,6 +33,13 @@ hud_tree_largepos  = tree_imgpos_offset + tree_row_height * 3
 hud_tree_partitioning = [0.25,0.25,0.25,0.25] # tree img, avilable, stack, graveyard
 
 hud_done_btn_pos = numpy.array([nx+50,175],dtype='int') 
+hud_buy_btn_offset = numpy.array([0,50],dtype='int') 
+hud_buy_btn_pos = [
+    hud_tree_seedpos   + hud_buy_btn_offset + hudpos,
+    hud_tree_smallpos  + hud_buy_btn_offset + hudpos,
+    hud_tree_mediumpos + hud_buy_btn_offset + hudpos,
+    hud_tree_largepos  + hud_buy_btn_offset + hudpos,
+]
 
 # dont't change, computed positions
 hud_tree_labels = numpy.array([
@@ -67,6 +74,14 @@ sun_box_size         =  100
 # game settings
 
 tree_costs = {0:1, 1:2, 2:3, 3:4, -1:4}
+
+tree_costs_fromstack={   
+     0:{4:1, 3:1, 2:2, 1:2},
+     1:{8:2, 7:2, 6:2, 5:2, 4:2, 3:2, 2:3, 1:3},
+     2:{4:3, 3:3, 2:4, 1:4},
+     3:{2:4, 1:5}
+} # check if that's right!
+
 
 num_sunpoints = 100
 
