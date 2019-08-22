@@ -82,6 +82,14 @@ class board(object):
         self.main.current_player.sunpoints -= settings.tree_costs[tree.size]
         #self.main.logic.cycle_players()
         #tree.
+
+    def buy_tree(self,treetype):
+        # we assume here checks have already been made
+        cost = settings.tree_costs_fromstack[treetype][self.main.current_player.n(treetype,'stack')]
+        self.main.console('tree %d bought for %d' % (treetype,cost))
+        self.main.current_player.sunpoints -= cost
+        self.main.current_player.stack[treetype][0].set_status('available')
+        return
     
     def let_the_sun_shine(self):
         # TBI 
@@ -219,7 +227,6 @@ class HUD(object):
                 self.buyrect[i]= text[i].get_rect().move(self.buy_btn_pos[i][0],self.buy_btn_pos[i][1]) 
         for i in range(4):
             self.gui.screen.blit(text[i],self.buy_btn_pos[i])
-
         return
 
     def set_seedling_callback(self,event,main):
@@ -324,9 +331,22 @@ class GUI(object):
         self.permanent_draw_queue = {}
         self.create_window()     
         self.load_tree_images()
+        self.load_sun_and_arrows()
         self.hud = HUD(self.main,(nx-ny,ny), (ny,0)) # main, hudsize, hudpos 
         self.draw_board()   
         return
+
+    def load_sun_and_arrows(self):
+        self.sun_and_arrows = pg.image.load(self.image_dir+'sun_and_arrows_90.png').convert_alpha()
+        self.arrows = pg.image.load(self.image_dir+'arrow_90.png').convert_alpha()
+        self.sun_and_arrows_rotated = {}; self.arrows_rotated = {}
+        # pre-rotate and store copies in a dictionary for quick access
+        # sun can be at 30, 90, 150, 210, 270 and 330 degrees
+        angle_offset = 180
+        for i,angle in enumerate([30, 90, 150, 210, 270, 330]):
+            self.arrows_rotated[angle] = pygame.transform.rotate(self.arrows, -angle+angle_offset)
+            self.sun_and_arrows_rotated[angle] = pygame.transform.rotate(self.sun_and_arrows, -angle+angle_offset)
+
 
     def load_tree_images(self):
         self.seedling = pg.image.load(self.image_dir+'tree0_90.png').convert_alpha()
@@ -355,6 +375,7 @@ class GUI(object):
     def draw(self):
         self.draw_board()
         self.draw_hud()
+        self.draw_sun()
         self.draw_draw_queue()
 
     def draw_board(self):
@@ -365,6 +386,15 @@ class GUI(object):
     def draw_hud(self):
         self.hud.draw()
         return
+
+    def draw_sun(self):
+        #sun 
+        sun_angle = self.main.logic.sunpos
+        sun = self.sun_and_arrows_rotated[sun_angle]
+        sunpos = util.get_lt_coords(sun,settings.board_sun_positions[sun_angle])
+        self.screen.blit(sun, sunpos)
+        for arpos in settings.board_arrow_positions[sun_angle]:
+            self.screen.blit(self.arrows_rotated[sun_angle],util.get_lt_coords(self.arrows_rotated[sun_angle],arpos))
 
     def draw_draw_queue(self):
         for qitem in self.draw_queue:

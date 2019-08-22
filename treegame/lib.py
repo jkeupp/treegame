@@ -159,7 +159,9 @@ def player_buy_callback(event,main,treetype):
     pos = event.pos
     assert treetype in [0,1,2,3]
     if main.gui.hud.buyrect[treetype].collidepoint(pos): 
-        main.logic.cycle_players()
+        allowed = main.logic.check_tree_buy(treetype)
+        if allowed is True:
+            main.board.buy_tree(treetype)
     
 def draw_on_move(event,main,item=None,pos=None):
     if pos is None:

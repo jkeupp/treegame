@@ -1,12 +1,19 @@
 import pygame
 import hexy
 import itertools
-
+from . import settings
 
 class logic(object):
     def __init__(self,main):
         self.main = main
         self.state = 'initialized'
+        self.initialize()
+        return
+
+    def initialize(self):
+        self.round = 0
+        self.tick = 0 
+        self.sunpos = 150 # that is position zero
         return
 
     def check_valid_tree_pos(self,pos,tree):
@@ -49,10 +56,18 @@ class logic(object):
             self.main.current_player = self.main.players[(self.main.current_player.idx+1)% self.main.nplayers]
         return
 
+    def cycle_round(self):
+        # tbi
+        return
 
-      #  self.owner = owner
-      #  self.main = owner.main
-      #  self.size = size
-      #  self.idx = idx
-      ##  self.set_status(status)
-       # self.position = None
+    def check_tree_buy(self,treetype):
+        player = self.main.current_player
+        trees_in_stack = player.n(treetype,'stack')
+        if trees_in_stack <= 0:
+            self.main.console('no more trees of %d in stack' % (treetype))
+            return False
+        cost = settings.tree_costs_fromstack[treetype][trees_in_stack]
+        if cost > player.sunpoints:
+            self.main.console('insufficient credits! %d<%d' % (player.sunpoints,cost))
+            return False
+        return True

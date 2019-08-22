@@ -1,5 +1,5 @@
 import numpy; np=numpy
-
+import hexy; hx=hexy
 
 # layout settings
 
@@ -7,7 +7,9 @@ nx = 800
 ny = 1200
 
 
+hex_radius = 56
 
+board_center = numpy.array([nx/2,nx/2],dtype='int')
 
 # console settings
 
@@ -68,6 +70,36 @@ hud_tree_labels_player_offset = numpy.array(
         [ 25, 83],
     ],dtype='int')
 
+def rotate(vec,degrees):
+    rad =numpy.deg2rad(degrees)
+    rotmat = numpy.array([[numpy.cos(rad),numpy.sin(rad)],[-numpy.sin(rad), numpy.cos(rad)]])
+    return numpy.dot(rotmat,vec.T).T
+
+def npa(x):
+    xx = numpy.array(x).reshape(1,3)
+    xy = hx.cube_to_pixel(xx,hex_radius)[0]
+    return xy
+
+# sun and arrow positions
+board_sun_positions={ 30:npa([ 4, 0,-4])+ board_center,
+                      90:npa([ 4,-4,0])+ board_center,
+                     150:npa([ 0,-4, 4])+ board_center,
+                     210:npa([-4, 0, 4])+ board_center,
+                     270:npa([-4, 4, 0])+ board_center,
+                     330:npa([ 0, 4,-4])+ board_center}
+
+# [npa([]), npa([]), npa([]), npa([]), npa([]), npa([])]
+# 
+
+arrow_positions_30 = numpy.array([npa([1,3,-4]), npa([2,2,-4]), npa([3,1,-4]), 
+                                  npa([4,-3,-1]), npa([4,-2,-2]), npa([4,-1,-3])])
+
+board_arrow_positions={ 30: arrow_positions_30+ board_center,
+                        90: rotate(arrow_positions_30,-60)+ board_center,
+                        150:rotate(arrow_positions_30,-120)+ board_center,
+                        210:rotate(arrow_positions_30,180)+ board_center,
+                        270:rotate(arrow_positions_30,120)+ board_center,
+                        330:rotate(arrow_positions_30,60)+ board_center}
 
 sun_box_size         =  100
 
