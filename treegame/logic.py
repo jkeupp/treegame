@@ -14,11 +14,16 @@ class logic(object):
         self.round = 0
         self.tick = 0 
         self.sunpos = 150 # that is position zero
+        self.trees_planted_at_this_round = []
         return
 
     def check_valid_tree_pos(self,pos,tree):
         # return true or false, drop reason to console if false
         #rules that apply:
+
+        if tuple(pos) in self.trees_planted_at_this_round:
+            self.main.console('only one move per tile per round!')
+            return False
 
         if tree.size == 0: #seedling:
             # field must be emmpty
@@ -52,12 +57,20 @@ class logic(object):
             self.main.starting_player = (self.main.starting_player + 1) % self.main.nplayers
             self.main.current_player = self.main.players[self.main.starting_player]
             self.main.board.let_the_sun_shine()
+            self.cycle_round()
         else:
             self.main.current_player = self.main.players[(self.main.current_player.idx+1)% self.main.nplayers]
+        self.trees_planted_at_this_round = []
         return
 
     def cycle_round(self):
-        # tbi
+        if self.tick == 5:
+            self.tick=0
+            self.round += 1
+        else:
+            self.tick += 1
+        self.sunpos = (self.sunpos + 60) % 360
+
         return
 
     def check_tree_buy(self,treetype):

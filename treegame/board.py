@@ -80,6 +80,7 @@ class board(object):
     def add_tree(self,cubepos,tree): # tree must be the tree instance already
         tree.add_to_board(cubepos)
         self.main.current_player.sunpoints -= settings.tree_costs[tree.size]
+        self.main.logic.trees_planted_at_this_round.append(tuple(cubepos))
         #self.main.logic.cycle_players()
         #tree.
 
@@ -208,10 +209,12 @@ class HUD(object):
         # show cost 
         p = self.main.current_player
         cost_dummy=1
-        text_seed_buy = self.gui.font_medium.render('BUY (%1s)' % (cost_dummy,),False,PLAYER_COLORS[p.idx])
-        text_small_buy = self.gui.font_medium.render('BUY (%1s)' % (cost_dummy,),False,PLAYER_COLORS[p.idx])
-        text_medium_buy = self.gui.font_medium.render('BUY (%1s)' % (cost_dummy,),False,PLAYER_COLORS[p.idx])
-        text_large_buy = self.gui.font_medium.render('BUY (%1s)' % (cost_dummy,),False,PLAYER_COLORS[p.idx])
+        costs = [str(settings.tree_costs_fromstack[i][self.main.current_player.n(i,'stack')]) if self.main.current_player.n(i,'stack') != 0 else '-'  for i in range(4)
+                    ]
+        text_seed_buy = self.gui.font_medium.render('BUY (%1s)' % (costs[0],),False,PLAYER_COLORS[p.idx])
+        text_small_buy = self.gui.font_medium.render('BUY (%1s)' % (costs[1],),False,PLAYER_COLORS[p.idx])
+        text_medium_buy = self.gui.font_medium.render('BUY (%1s)' % (costs[2],),False,PLAYER_COLORS[p.idx])
+        text_large_buy = self.gui.font_medium.render('BUY (%1s)' % (costs[3],),False,PLAYER_COLORS[p.idx])
         text = {0:text_seed_buy, 1:text_small_buy, 2:text_medium_buy, 3:text_large_buy}
         if  'buybutton_seed' in self.main.context.onMouseUp.keys():
             pass
