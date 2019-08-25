@@ -1,0 +1,7 @@
+#!/usr/bin/python -i
+import treegame
+
+t = treegame.treegame()
+t.startup()
+t.loop()
+
