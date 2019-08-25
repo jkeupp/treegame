@@ -76,9 +76,12 @@ def rotate(vec,degrees):
     return numpy.dot(rotmat,vec.T).T
 
 def npa(x):
-    xx = numpy.array(x).reshape(1,3)
+    xx = numpy.array(x,dtype='int').reshape(1,3)
     xy = hx.cube_to_pixel(xx,hex_radius)[0]
     return xy
+
+def ht(a,b,c):
+    return numpy.array([a,b,c],dtype='int').reshape(1,3)
 
 # sun and arrow positions
 board_sun_positions={ 30:npa([ 4, 0,-4])+ board_center,
@@ -102,6 +105,33 @@ board_arrow_positions={ 30: arrow_positions_30+ board_center,
                         330:rotate(arrow_positions_30,60)+ board_center}
 
 sun_box_size         =  100
+
+n_line = hexy.get_hex_line(ht(0,3,-3),ht(3,0,-3)); n_line_rev = n_line[::-1]
+ne_line = hexy.get_hex_line(ht(3,0,-3),ht(3,-3,0)); ne_line_rev = ne_line[::-1]
+se_line = hexy.get_hex_line(ht(3,-3,0),ht(0,-3,3)); se_line_rev = se_line[::-1]
+s_line = hexy.get_hex_line(ht(0,-3,3),ht(-3,0,3)); s_line_rev = s_line[::-1]
+sw_line = hexy.get_hex_line(ht(-3,0,3),ht(-3,3,0)); sw_line_rev = sw_line[::-1]
+nw_line = hexy.get_hex_line(ht(-3,3,0),ht(0,3,-3)); nw_line_rev = nw_line[::-1]
+
+rays = {30:
+            [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(n_line,sw_line_rev)] + 
+            [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(ne_line[1:],s_line_rev[1:])],
+        90:
+            [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(ne_line,s_line_rev)] + 
+            [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(se_line[1:],sw_line[1:])],
+        150:
+            [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(s_line_rev,nw_line)] + 
+            [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(se_line_rev[1:],n_line[1:])],
+        210:
+            [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(sw_line_rev,n_line)] + 
+            [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(s_line_rev[1:],ne_line[1:])],
+        270:
+            [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(nw_line_rev,ne_line)] + 
+            [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(se_line_rev[1:],se_line[1:])],
+        330:
+            [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(n_line_rev,se_line)] + 
+            [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(nw_line_rev[1:],s_line[1:])]
+        }
 
 # game settings
 

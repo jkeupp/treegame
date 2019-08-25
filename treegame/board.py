@@ -469,6 +469,9 @@ class HexField(object):
         cubepos =hx.pixel_to_cube(np.array([pos - self.center]),self.hex_radius)
         #import pdb; pdb.set_trace()
         return numpy.array(cubepos[0],dtype='int')
+    
+    def get_rays(self):
+        return
 
     def get_cartesian_point(self,cubepos):
         return hx.cube_to_pixel(cubepos.reshape((1,3)),self.hex_radius)[0]

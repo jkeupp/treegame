@@ -1,5 +1,6 @@
 import pygame
 import hexy
+import numpy
 import itertools
 from . import settings
 
@@ -38,6 +39,8 @@ class logic(object):
             for ptree in itertools.chain(*self.main.current_player.board.values()): # that is the trees the player has on the board
                 if int(hexy.get_cube_distance(ptree.position,pos) <= ptree.size):
                     return True
+            self.main.console('plant seeds: at edge, next to tree')
+            return False
         occ = self.main.board.field.get_tile_occupation(pos) #  occ is a tree instance!
         # all other trees require an othertree.size of tree.size-1 --> empty field forbidden!
         if occ is None: 
@@ -56,7 +59,7 @@ class logic(object):
         if (self.main.current_player.idx+1)%self.main.nplayers == self.main.starting_player:
             self.main.starting_player = (self.main.starting_player + 1) % self.main.nplayers
             self.main.current_player = self.main.players[self.main.starting_player]
-            self.main.board.let_the_sun_shine()
+            self.let_the_sun_shine()
             self.cycle_round()
         else:
             self.main.current_player = self.main.players[(self.main.current_player.idx+1)% self.main.nplayers]
@@ -70,7 +73,30 @@ class logic(object):
         else:
             self.tick += 1
         self.sunpos = (self.sunpos + 60) % 360
+        return
 
+    def let_the_sun_shine(self):
+        # get the rays as coordinates
+        # hx.get_hex_line
+        rays = settings.rays[self.sunpos]
+        f = self.main.board.field
+        money_earned = [0 for x in self.main.players]
+        for i,ray in enumerate(rays):
+            shadow = [0,0]
+            for j, tile in enumerate(ray):
+                tree = f.get_tile_occupation(tile)
+                shadow[0] = numpy.max(shadow[0]-1,0)
+                if shadow[0] == 0: shadow[1] = 0
+                if tree is None: continue
+                if tree.size > shadow[1]:
+                    money_earned[tree.owner.idx] += tree.size
+                    shadow = [tree.size+1,tree.size]
+                if shadow[0]==1:
+                    shadow = [tree.size+1,tree.size]
+                print(i,j,tile,shadow,money_earned,tree.size)
+        for ip,p in self.main.players.items(): 
+            self.main.console('player %d earned %d' % (p.idx,money_earned[p.idx]))
+            p.sunpoints += money_earned[p.idx]
         return
 
     def check_tree_buy(self,treetype):

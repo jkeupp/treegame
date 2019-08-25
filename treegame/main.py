@@ -8,7 +8,7 @@ from . import console
 from . import settings
 
 class treegame(object):
-    def __init__(self,nplayers=4):
+    def __init__(self,nplayers=2):
         self.nplayers = nplayers
         self.init_players()
         self.starting_player = 0
@@ -53,7 +53,7 @@ class treegame(object):
                 if event.key == pygame.K_ESCAPE:
                     pygame.event.post(pygame.event.Event(pygame.QUIT))
             elif event.type == pygame.MOUSEBUTTONDOWN and len(self.context.onMouseDown) != 0:
-                print(event,events)
+                #print(event,events)
                 #skip=False
                 #for e in events[i:]:
                 #    if e.type == pygame.MOUSEBUTTONUP: 
@@ -62,11 +62,11 @@ class treegame(object):
                 for callback in self.context.onMouseDown.values():
                     callback(event,self)
             elif event.type == pygame.MOUSEMOTION and len(self.context.onMouseMove) != 0:
-                print(event,events)
+                #print(event,events)
                 for callback in self.context.onMouseMove.values():
                     callback(event,self)
             elif event.type == pygame.MOUSEBUTTONUP and len(self.context.onMouseUp) != 0:
-                print(event,events)
+                #print(event,events)
                 for callback in self.context.onMouseUp.values():
                     callback(event,self)
             self.context.clean_context()
