@@ -6,15 +6,17 @@ from . import context
 from . import logic
 from . import console
 from . import settings
+from . import network
 
 class treegame(object):
-    def __init__(self,nplayers=2):
+    def __init__(self,nplayers=2,network=False):
         self.nplayers = nplayers
         self.init_players()
         self.starting_player = 0
         self.current_player =self.players[self.starting_player]
         self.time_zero = time.time()
         self.settings = settings
+        self.network = network
         return
 
     def init_players(self):
@@ -33,6 +35,14 @@ class treegame(object):
         self.logic = logic.logic(self)
         self.clock = pygame.time.Clock()
         self.console('game initialized')
+
+    def connect(self,hostname,port):
+        from .network import Client
+        self.server_hostname = hostname
+        self.server_port = port
+        self.client = Client(hostname,port)
+        self.client.connect()
+        self.client.wait_start()
 
     def loop(self):
         ### pygame main loop

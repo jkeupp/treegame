@@ -1,7 +1,11 @@
-#!/usr/bin/python -i
+#!/usr/bin/python3 -i
 import treegame
 
-t = treegame.treegame()
+host = '127.0.1.1'
+port = 16666
+
+t = treegame.treegame(network=True)
+t.connect(host,port)
 t.startup()
 t.loop()
 
