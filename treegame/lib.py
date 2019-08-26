@@ -194,10 +194,15 @@ def drop_tree(event,main,uuid,tree=None):
         # check if that is actually a valid position based on the current tree positions
         valid_pos = main.logic.check_valid_tree_pos(cubepos,tree)
         # check if the player has enough money
-        if main.current_player.sunpoints < settings.tree_costs[tree.size]:
-            main.console('sry, not enough money!')
-        if valid_pos is not False:
-            main.board.add_tree(cubepos,tree)
+        
+        if main.logic.startup_rounds == True:
+            if valid_pos is True:
+                main.board.add_tree(cubepos,tree)
+        else:
+            if main.current_player.sunpoints < settings.tree_costs[tree.size]:
+                main.console('sry, not enough money!')
+            elif valid_pos is not False:
+                main.board.add_tree(cubepos,tree)
     else:
         main.console('that is not even a field')
     #kill self

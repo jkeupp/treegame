@@ -33,6 +33,7 @@ class logic(object):
                 return False           
             if int(hexy.get_cube_distance((0,0,0),pos)) == 3:
                 return True
+            self.main.console('put trees at edges in init')
             return False
 
         if tuple(pos) in self.trees_planted_at_this_round:

@@ -146,7 +146,7 @@ tree_costs_fromstack={
 
 tree_max_stack = {0:4,1:4,2:3,3:2}
 
-num_sunpoints = 100
+num_sunpoints = 0
 
 num_start_seedlings   = 2
 num_start_smalltrees  = 4 
