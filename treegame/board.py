@@ -78,6 +78,20 @@ class board(object):
             return False
 
     def add_tree(self,cubepos,tree): # tree must be the tree instance already
+        if self.main.logic.startup_rounds is True:
+            tree.add_to_board(cubepos)
+            self.main.logic.cycle_players()
+            return
+
+        if tree.size != 0:
+            # there has to be an old tree we have to add to the reservoir again!
+            if self.main.current_player.n(tree.size-1,'stack') < settings.tree_max_stack[tree.size-1]:
+                self.main.board.field.get_tile_occupation(cubepos).set_status('stack')
+                self.main.console('tree added back to stack')
+            else:
+                self.main.board.field.get_tile_occupation(cubepos).set_status('graveyard')
+                self.main.console('stack full -> tree trashed')
+                
         tree.add_to_board(cubepos)
         self.main.current_player.sunpoints -= settings.tree_costs[tree.size]
         self.main.logic.trees_planted_at_this_round.append(tuple(cubepos))
@@ -145,7 +159,7 @@ class HUD(object):
         for i,pk in enumerate(self.players):
             p = self.players[pk]
             text = self.gui.font.render('%s: %2d' % (p.name,p.sunpoints),
-                                        False,PLAYER_COLORS[i])      
+                                        True,PLAYER_COLORS[i])      
             if p.name == player.name:
                 text.set_alpha(255)
             else:
@@ -180,19 +194,27 @@ class HUD(object):
         #import pdb; pdb.set_trace()
         for i,label in enumerate(labels): # i = kind_idx
             for j in range(4): # j = tree_idx
-                label_txt = self.gui.font_medium.render(label, False, BLACK)
+                if label == 'board':
+                    label_txt = self.gui.font_medium.render(label+'/gone', True, BLACK)
+                else:
+                    label_txt = self.gui.font_medium.render(label, True, BLACK)
                 center = settings.hud_tree_labels[i,j,:] # tree_idx, kind_idx
                 pos = util.get_pos_to_center_text(label_txt,center) 
                 self.screen.blit(label_txt,pos)
                 for k,pk in enumerate(self.players): # k = player_idx
                     p = self.players[pk]
-                    text = self.gui.font_xlarge.render(str(p.n(j,label)),False,PLAYER_COLORS[k])  
+                    if label == 'stack':
+                        text = self.gui.font_large.render(str(p.n(j,label))+'/'+str(settings.tree_max_stack[j]),True,PLAYER_COLORS[k])  
+                    elif label == 'board':
+                        text = self.gui.font_large.render(str(p.n(j,label))+'/'+str(p.n(j,'graveyard')),True,PLAYER_COLORS[k])
+                    else:
+                        text = self.gui.font_xlarge.render(str(p.n(j,label)),True,PLAYER_COLORS[k])  
                     center2 = center + settings.hud_tree_labels_player_offset[k]
                     pos = util.get_pos_to_center_text(text,center2) 
                     self.screen.blit(text,pos)
     
     def draw_cycle_button(self):
-        text = self.gui.font_large.render('DONE',False,PLAYER_COLORS[self.main.current_player.idx])
+        text = self.gui.font_large.render('DONE',True,PLAYER_COLORS[self.main.current_player.idx])
         if  'cyclebutton' in self.main.context.onMouseUp.keys():
             pass
         else:
@@ -211,10 +233,10 @@ class HUD(object):
         cost_dummy=1
         costs = [str(settings.tree_costs_fromstack[i][self.main.current_player.n(i,'stack')]) if self.main.current_player.n(i,'stack') != 0 else '-'  for i in range(4)
                     ]
-        text_seed_buy = self.gui.font_medium.render('BUY (%1s)' % (costs[0],),False,PLAYER_COLORS[p.idx])
-        text_small_buy = self.gui.font_medium.render('BUY (%1s)' % (costs[1],),False,PLAYER_COLORS[p.idx])
-        text_medium_buy = self.gui.font_medium.render('BUY (%1s)' % (costs[2],),False,PLAYER_COLORS[p.idx])
-        text_large_buy = self.gui.font_medium.render('BUY (%1s)' % (costs[3],),False,PLAYER_COLORS[p.idx])
+        text_seed_buy = self.gui.font_medium.render('BUY (%1s)' % (costs[0],),True,PLAYER_COLORS[p.idx])
+        text_small_buy = self.gui.font_medium.render('BUY (%1s)' % (costs[1],),True,PLAYER_COLORS[p.idx])
+        text_medium_buy = self.gui.font_medium.render('BUY (%1s)' % (costs[2],),True,PLAYER_COLORS[p.idx])
+        text_large_buy = self.gui.font_medium.render('BUY (%1s)' % (costs[3],),True,PLAYER_COLORS[p.idx])
         text = {0:text_seed_buy, 1:text_small_buy, 2:text_medium_buy, 3:text_large_buy}
         if  'buybutton_seed' in self.main.context.onMouseUp.keys():
             pass
@@ -488,7 +510,7 @@ class HexField(object):
             #text= '%5.2f %5.2f\n' % tuple(hexagon.get_position().tolist())
             #print(hexagon.axial_coordinates.tolist())
             text = '%d %d %d' % tuple(hexagon.cube_coordinates[0].tolist())
-            text = font.render(text, False, (0, 0, 0))
+            text = font.render(text, True, (0, 0, 0))
             text.set_alpha(160)
             text_pos = hexagon.get_position() + self.center
             text_pos -= (text.get_width() / 2, text.get_height() / 2 + 33)

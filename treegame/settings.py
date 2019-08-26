@@ -127,7 +127,7 @@ rays = {30:
             [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(s_line_rev[1:],ne_line[1:])],
         270:
             [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(nw_line_rev,ne_line)] + 
-            [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(se_line_rev[1:],se_line[1:])],
+            [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(sw_line_rev[1:],se_line[1:])],
         330:
             [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(n_line_rev,se_line)] + 
             [numpy.array(hx.get_hex_line(x,y),dtype='int') for x,y in zip(nw_line_rev[1:],s_line[1:])]
@@ -144,6 +144,7 @@ tree_costs_fromstack={
      3:{2:4, 1:5}
 } # check if that's right!
 
+tree_max_stack = {0:4,1:4,2:3,3:2}
 
 num_sunpoints = 100
 

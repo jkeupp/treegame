@@ -21,7 +21,7 @@ class console(object):
             else:
                 #message goes to screen ... draw it!
                 msgstr = str(message)   
-                text = self.main.gui.font.render(msgstr,False,[0,0,0])   
+                text = self.main.gui.font.render(msgstr,True,[0,0,0])   
                 width,height = text.get_size()   
                 msg_lcenter[1] -= height # first add the height, since screen.blit uses pos as upper left position
                 self.main.gui.screen.blit(text,msg_lcenter)

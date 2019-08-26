@@ -7,13 +7,14 @@ from . import settings
 class logic(object):
     def __init__(self,main):
         self.main = main
-        self.state = 'initialized'
         self.initialize()
         return
 
     def initialize(self):
         self.round = 0
         self.tick = 0 
+        self.startup_rounds=True
+        self.nstartup_rounds = 0
         self.sunpos = 150 # that is position zero
         self.trees_planted_at_this_round = []
         return
@@ -21,6 +22,18 @@ class logic(object):
     def check_valid_tree_pos(self,pos,tree):
         # return true or false, drop reason to console if false
         #rules that apply:
+
+        # in startup round: only trees of size 1 can be plated at the edge of the field
+        if self.startup_rounds is True:
+            if tree.size != 1:
+                self.main.console('smalltrees only in init phase')
+                return False
+            if self.main.board.field.get_tile_occupation(pos) is not None:
+                self.main.console('field occupied! choose an empty one')
+                return False           
+            if int(hexy.get_cube_distance((0,0,0),pos)) == 3:
+                return True
+            return False
 
         if tuple(pos) in self.trees_planted_at_this_round:
             self.main.console('only one move per tile per round!')
@@ -32,8 +45,8 @@ class logic(object):
                 self.main.console('field occupied! choose an empty one')
                 return False
             # ckeck if distance from center is == 3
-            if int(hexy.get_cube_distance((0,0,0),pos)) == 3:
-                return True
+            #if int(hexy.get_cube_distance((0,0,0),pos)) == 3:
+            #    return True
             # seedlings can be put anywhere at r=3
             # seedlings can be put tree.size tiles away from a tree
             for ptree in itertools.chain(*self.main.current_player.board.values()): # that is the trees the player has on the board
@@ -59,8 +72,15 @@ class logic(object):
         if (self.main.current_player.idx+1)%self.main.nplayers == self.main.starting_player:
             self.main.starting_player = (self.main.starting_player + 1) % self.main.nplayers
             self.main.current_player = self.main.players[self.main.starting_player]
-            self.let_the_sun_shine()
-            self.cycle_round()
+            if self.startup_rounds is True:
+                if self.nstartup_rounds == 1:
+                    self.startup_rounds = False
+                    self.let_the_sun_shine()
+                else:
+                    self.nstartup_rounds += 1
+            else:
+                self.cycle_round()
+                self.let_the_sun_shine()
         else:
             self.main.current_player = self.main.players[(self.main.current_player.idx+1)% self.main.nplayers]
         self.trees_planted_at_this_round = []
@@ -81,6 +101,7 @@ class logic(object):
         rays = settings.rays[self.sunpos]
         f = self.main.board.field
         money_earned = [0 for x in self.main.players]
+        print(10*'#')
         for i,ray in enumerate(rays):
             shadow = [0,0]
             for j, tile in enumerate(ray):
