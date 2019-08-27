@@ -40,7 +40,7 @@ class treegame(object):
         from .network import Client
         self.server_hostname = hostname
         self.server_port = port
-        self.client = Client(hostname,port)
+        self.client = Client(self,hostname,port)
         self.client.connect()
         self.client.wait_start()
 
