@@ -102,7 +102,6 @@ class logic(object):
         rays = settings.rays[self.sunpos]
         f = self.main.board.field
         money_earned = [0 for x in self.main.players]
-        print(10*'#')
         for i,ray in enumerate(rays):
             shadow = [0,0]
             for j, tile in enumerate(ray):
@@ -115,7 +114,6 @@ class logic(object):
                     shadow = [tree.size+1,tree.size]
                 if shadow[0]==1:
                     shadow = [tree.size+1,tree.size]
-                print(i,j,tile,shadow,money_earned,tree.size)
         for ip,p in self.main.players.items(): 
             self.main.console('player %d earned %d' % (p.idx,money_earned[p.idx]))
             p.sunpoints += money_earned[p.idx]

@@ -6,8 +6,9 @@ srv = treegame.Server(nplayers=2)
 
 
 srv.start()
+
 atexit.register(srv.cleanup)
 
 srv.listen()
 
-
+srv.loop()

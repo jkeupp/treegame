@@ -137,30 +137,36 @@ class Callback(object):
         return
 
     def __call__(self,*args,**kwargs):
-        #import pdb; pdb.set_trace()
         tmpargs = args + self.args # get rid of self in args!
         self.kwargs.update(kwargs)
-        #print(30*'#')
-        #print(tmpargs)
-        #print(30*'#')
-        #print(self.kwargs)
-        #print(30*'#')
         return self.callback_fun(*tmpargs,**self.kwargs)
 
 def player_cycle_callback(event,main):
     # if not, someone possibly drags stuff around and cycle should not trigger
     # if pygame.mouse.get_visible(): #  becomes available in pygame 2.0.0
+    if main.network is not False:
+        if main.current_player.idx != main.network_playerid:
+            main.console('Wait player %s' % (main.current_player.name))
+            return    
     pos = event.pos
     if main.gui.hud.donerect.collidepoint(pos): 
+        if main.network is True:
+            main.client.send('%d is done' % (main.current_player.idx,))
         main.logic.cycle_players()
 
 def player_buy_callback(event,main,treetype):
     # treetype one of 0, 1, 2 or 3
+    if main.network is not False:
+        if main.current_player.idx != main.network_playerid:
+            main.console('Wait player %s' % (main.current_player.name))
+            return
     pos = event.pos
     assert treetype in [0,1,2,3]
     if main.gui.hud.buyrect[treetype].collidepoint(pos): 
         allowed = main.logic.check_tree_buy(treetype)
         if allowed is True:
+            if main.network is True:
+                main.client.send('%d bought tree %d' % (main.current_player.idx,treetype))
             main.board.buy_tree(treetype)
     
 def draw_on_move(event,main,item=None,pos=None):
@@ -188,7 +194,11 @@ def drop_tree(event,main,uuid,tree=None):
     main.context.tobecleaned.append([main.context.onMouseMove, uuid])
     del main.gui.permanent_draw_queue[uuid]
     pygame.mouse.set_visible(1)
-    # check if that tree can go there. apply if so -- TBI
+    if main.network is not False:
+        if main.current_player.idx != main.network_playerid:
+            main.console('Wait player %s' % (main.current_player.name))
+            main.context.tobecleaned.append([main.context.onMouseUp, uuid])
+            return
     cubepos = main.board.check_valid_tree_coord(event.pos,tree)
     if cubepos is not False:
         # check if that is actually a valid position based on the current tree positions
@@ -197,11 +207,16 @@ def drop_tree(event,main,uuid,tree=None):
         
         if main.logic.startup_rounds == True:
             if valid_pos is True:
+                if main.network is True:
+                    print(cubepos, type(cubepos), (main.current_player.idx,tree.size)+tuple(cubepos))
+                    main.client.send('%d placed tree %d %d_%d_%d' % ((main.current_player.idx,tree.size)+tuple(cubepos)))
                 main.board.add_tree(cubepos,tree)
         else:
             if main.current_player.sunpoints < settings.tree_costs[tree.size]:
                 main.console('sry, not enough money!')
             elif valid_pos is not False:
+                if main.network is True:
+                    main.client.send('%d placed tree %d %d_%d_%d' % ((main.current_player.idx,tree.size)+tuple(cubepos)))
                 main.board.add_tree(cubepos,tree)
     else:
         main.console('that is not even a field')

@@ -52,6 +52,8 @@ class treegame(object):
             self.interpret_events()
             self.gui.draw()
             self.gui.render()
+            if self.network is True:
+                self.client.listen()
 
     def interpret_events(self):
         events = pygame.event.get()
