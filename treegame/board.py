@@ -117,7 +117,7 @@ class HUD(object):
         self.main.gui.hud = self
         self.size = numpy.array(size,dtype='int')
         self.pos = numpy.array(pos,dtype='int')
-        self.background_image = pygame.image.load("/home/julian/sandbox/treegame/images/hud.png")
+        self.background_image = pygame.image.load(self.main.imgpath+"hud.png")
         self.dx_sun = settings.sun_box_size / (len(self.players) +1)
         self.dx_treerow = settings.tree_row_height / (len(self.players) +1)
         self.make_tree_sprites()
@@ -346,7 +346,7 @@ class GUI(object):
     def __init__(self,main_instance,nx=1200, ny=800):
         self.main = main_instance
         self.main.gui = self
-        self.image_dir = '/home/julian/sandbox/treegame/images/' # sry for hardcoded path!
+        self.image_dir = self.main.imgpath 
         self.board = self.main.board
         self.board.field.gui = self
         self.res   = (nx,ny)

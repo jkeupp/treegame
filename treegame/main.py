@@ -9,7 +9,7 @@ from . import settings
 from . import network
 
 class treegame(object):
-    def __init__(self,nplayers=2,network=False):
+    def __init__(self,nplayers=2,network=False,imgpath = 'default'):
         self.nplayers = nplayers
         self.init_players()
         self.starting_player = 0
@@ -17,6 +17,11 @@ class treegame(object):
         self.time_zero = time.time()
         self.settings = settings
         self.network = network
+        if imgpath == 'default':
+            import inspect
+            self.imgpath = inspect.getfile(self.__class__).rsplit('/',2)[0] + '/images/'     ##retrieve from where we are now
+        else:
+            self.imgpath = imgpath
         return
 
     def init_players(self):
