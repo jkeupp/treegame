@@ -153,6 +153,7 @@ class HUD(object):
         self.main.console.draw()
         self.draw_cycle_button()
         self.draw_buy_buttons()
+        self.draw_axe()
         pass
 
     def draw_sunpoints(self,player):
@@ -252,6 +253,22 @@ class HUD(object):
                 self.buyrect[i]= text[i].get_rect().move(self.buy_btn_pos[i][0],self.buy_btn_pos[i][1]) 
         for i in range(4):
             self.gui.screen.blit(text[i],self.buy_btn_pos[i])
+        return
+
+    def draw_axe(self):
+        p = self.main.current_player
+        # gray axe if no largetree is present, black one if there is one
+        # callback only if a argetree is present. msg otherwise
+        if p.n(3,'board') != 0:
+            self.gui.screen.blit(self.main.gui.axeimg, settings.axepos)
+        else:
+            self.gui.screen.blit(self.main.gui.axeimg_gray,settings.axepos)
+            #tbi
+            pass
+        return
+
+    def set_axe_callback(self,event,main):
+        
         return
 
     def set_seedling_callback(self,event,main):
@@ -386,6 +403,9 @@ class GUI(object):
                           1:self.smalltrees,
                           2:self.mediumtrees,
                           3:self.largetrees}
+        self.axeimg = pg.image.load(self.image_dir+'axe_90.png').convert_alpha()
+        self.axeimg_gray = util.colorize(self.axeimg,[120,120,120])
+
 
     def create_window(self):
         self.screen = pygame.display.set_mode(self.res)

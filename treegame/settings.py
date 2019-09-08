@@ -22,7 +22,7 @@ console_line_offset = 8
 hudpos = numpy.array([800,0],dtype='int')
 board_size_radius = 3
 
-
+axepos = numpy.array([750,750],dtype='int')
 
 tree_imgpos_offset   =  numpy.array([50,275],dtype='int') 
 tree_row_height      =  numpy.array([0,150],dtype='int')
