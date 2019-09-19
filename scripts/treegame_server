@@ -1,8 +1,14 @@
 #!/usr/bin/python3 -i
 import treegame
 import atexit
+import sys
 
-srv = treegame.Server(nplayers=2)
+if len(sys.argv) == 1:
+    nplayers = 2
+else:
+    nplayers = int(sys.argv[1])
+
+srv = treegame.Server(nplayers=nplayers)
 
 
 srv.start()

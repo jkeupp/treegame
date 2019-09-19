@@ -144,6 +144,12 @@ tree_costs_fromstack={
      3:{2:4, 1:5}
 } # check if that's right!
 
+tree_chop_gain = {3:[17,16,16,15,15,14,14],
+                  2:[19,18,18,17,17],
+                  1:[21,20,19,19],
+                  0:[24,23,22],
+                  }
+
 tree_max_stack = {0:4,1:4,2:3,3:2}
 
 num_sunpoints = 0

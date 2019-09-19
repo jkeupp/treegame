@@ -12,6 +12,7 @@ class Player(object):
         # init variables
         self.main = main
         self.sunpoints = settings.num_sunpoints
+        self.points = 0
         self.idx = idx
         self.name = name
         self.trees = {}
@@ -189,6 +190,25 @@ def draw_until_deregister(event,main,uuid,item=None,pos=None):
     else:
         main.gui.permanent_draw_queue[uuid] = DrawItem(item,main.gui.screen,pos=pos)
 
+def chop_tree(event,main,uuid):
+    # TBI
+    # deregister mousemove function so main stops drawing it
+    main.context.tobecleaned.append([main.context.onMouseMove, uuid])
+
+    # get the tile position 
+    cubepos = main.board.check_valid_tree_coord(event.pos)
+    if cubepos is not False:
+        tileocc = main.board.field.get_tile_occupation(cubepos)
+        if tileocc is None: return
+        if tileocc.size != 3:
+            main.console('You can chop only large trees'); return
+        if tileocc.owner.idx != main.current_player.idx:
+            main.console("That's not your Tree!"); return
+        # after all these checks we know that is a valid treepos 
+        # - remove it - add it to stack/graveyard - get points for the current player
+        main.board.chop_tree(cubepos,tileocc)
+    return
+
 def drop_tree(event,main,uuid,tree=None):
     #deregister mouse_move callback
     main.context.tobecleaned.append([main.context.onMouseMove, uuid])
@@ -199,7 +219,7 @@ def drop_tree(event,main,uuid,tree=None):
             main.console('Wait player %s' % (main.current_player.name))
             main.context.tobecleaned.append([main.context.onMouseUp, uuid])
             return
-    cubepos = main.board.check_valid_tree_coord(event.pos,tree)
+    cubepos = main.board.check_valid_tree_coord(event.pos)
     if cubepos is not False:
         # check if that is actually a valid position based on the current tree positions
         valid_pos = main.logic.check_valid_tree_pos(cubepos,tree)

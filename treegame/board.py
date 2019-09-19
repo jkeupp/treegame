@@ -69,7 +69,7 @@ class board(object):
         self.field = HexField(self.main)
         return
 
-    def check_valid_tree_coord(self,pos,tree):
+    def check_valid_tree_coord(self,pos):
         player = self.main.current_player
         hex_pos = self.field.get_hex_point(pos)
         if numpy.sum(numpy.abs(hex_pos)) < self.field.max_coord*3:
@@ -97,6 +97,22 @@ class board(object):
         self.main.logic.trees_planted_at_this_round.append(tuple(cubepos))
         #self.main.logic.cycle_players()
         #tree.
+
+    def chop_tree(self,cubepos,tree):
+        # 
+        pointzone = int(numpy.sum(numpy.abs(cubepos)) / 2)
+        points = settings.tree_chop_gain[pointzone].pop(0)
+        self.main.console('player %d earned %d points' % (tree.owner.idx,points))
+        tree.owner.points += points
+        self.field.set_tile_occupation(cubepos,None)
+        if self.main.current_player.n(3,'stack') < settings.tree_max_stack[3]:
+            tree.set_status('stack')
+            self.main.console('tree added back to stack')
+        else:
+            tree.set_status('graveyard')
+            self.main.console('stack full -> tree trashed')
+        self.main.logic.trees_planted_at_this_round.append(tuple(cubepos))
+        return
 
     def buy_tree(self,treetype):
         # we assume here checks have already been made
@@ -140,6 +156,7 @@ class HUD(object):
         self.smallsprites  =  {i:TreeSprite(img,self.pos+settings.hud_tree_smallpos)  for i, img in self.gui.smalltrees.items()}
         self.mediumsprites =  {i:TreeSprite(img,self.pos+settings.hud_tree_mediumpos) for i, img in self.gui.mediumtrees.items()}
         self.largesprites  =  {i:TreeSprite(img,self.pos+settings.hud_tree_largepos)  for i, img in self.gui.largetrees.items()}
+        self.axesprite     =   TreeSprite(self.gui.axeimg,settings.axepos)
 
     def draw(self):
         active_player = self.main.current_player
@@ -259,16 +276,35 @@ class HUD(object):
         p = self.main.current_player
         # gray axe if no largetree is present, black one if there is one
         # callback only if a argetree is present. msg otherwise
+
+        #self.largesprites[player.idx].draw(self.screen) 
+        #self.main.context.onMouseDown['largetreeCallback'] = self.set_largetree_callback
         if p.n(3,'board') != 0:
             self.gui.screen.blit(self.main.gui.axeimg, settings.axepos)
         else:
             self.gui.screen.blit(self.main.gui.axeimg_gray,settings.axepos)
             #tbi
             pass
+        self.main.context.onMouseDown['axeCallback'] = self.set_axe_callback
         return
 
     def set_axe_callback(self,event,main):
-        
+        if self.axesprite.rect.collidepoint(event.pos) is 0: return
+        if self.main.current_player.n(3,'board') == 0:
+            self.main.console('There are no largetrees to chop down!')
+            return
+        move_callback_identifier = uuid.uuid4()
+        # register on_mouse_move for drawer 
+        self.main.context.onMouseMove[move_callback_identifier] = Callback(
+            draw_until_deregister, args = (move_callback_identifier,), kwargs={
+                'item':self.gui.axeimg,
+                }
+            )
+        self.main.context.onMouseMove[move_callback_identifier](event,main)
+        pygame.mouse.set_visible(0)
+        # register on_mouse_down to check of seedling can be placed there and to cleanup
+        self.main.context.onMouseUp[move_callback_identifier] =\
+            Callback(chop_tree, args = (move_callback_identifier,))
         return
 
     def set_seedling_callback(self,event,main):
@@ -503,6 +539,12 @@ class HexField(object):
         else: 
             return self._tile_occupation[self.get_cube_index(pos)]
 
+    def set_tile_occupation(self,pos,tile_occupation):
+        if type(pos) == type(tuple):
+            self._tile_occupation[self.cube_indices(pos)] = tile_occupation
+        else: 
+            self._tile_occupation[self.get_cube_index(pos)] = tile_occupation
+
     def get_cube_index(self,pos):
         pos_tupl = tuple(pos)
         return self.cube_indices[pos_tupl]
@@ -513,6 +555,10 @@ class HexField(object):
         return numpy.array(cubepos[0],dtype='int')
     
     def get_rays(self):
+        return
+
+    def get_distance(self,cubepos1,cubepos2):
+        # tbi
         return
 
     def get_cartesian_point(self,cubepos):

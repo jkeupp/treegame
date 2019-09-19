@@ -1,10 +1,23 @@
 #!/usr/bin/python3 -i
 import treegame
+import sys
 
-host = '127.0.1.1'
+if len(sys.argv) == 3:
+    nplayers = int(sys.argv[1])
+    host  = sys.argv[2]
+elif len(sys.argv) == 2:
+    host = sys.argv[1]
+    nplayers = 2
+else: 
+    nplayers = 2
+    host = '127.0.1.1'
+
 port = 16666
 
-t = treegame.treegame(network=True)
+
+
+
+t = treegame.treegame(nplayers=nplayers,network=True)
 t.connect(host,port)
 t.startup()
 t.loop()
