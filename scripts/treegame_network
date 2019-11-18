@@ -2,20 +2,44 @@
 import treegame
 import sys
 
+def ask_nplayers():
+    done = False
+    while not done:
+        input_players = input(' how many players are about to play? [int] ')
+        try: 
+            nplayers = int(input_players)
+            done=True
+        except:
+            pass
+    return nplayers
+
+def ask_ip():
+    done = False
+    while not done:
+        ip = input("what's the server IP? [int8.int8.int8.int8] ")
+        if len(ip) > 16 or ip.count('.') != 3:
+            continue
+        else:
+            done=True
+    return ip
+
+print(sys.argv)
+
 if len(sys.argv) == 3:
     nplayers = int(sys.argv[1])
     host  = sys.argv[2]
 elif len(sys.argv) == 2:
     host = sys.argv[1]
-    nplayers = 2
-else: 
-    nplayers = 2
-    host = '127.0.1.1'
+    nplayers = ask_nplayers()
+else:
+    # interactive input
+    host = ask_ip()
+    nplayers = ask_nplayers()
 
 port = 16666
+print('using default port %d' % (port,))
 
-
-
+print('using %s' % (host,))
 
 t = treegame.treegame(nplayers=nplayers,network=True)
 t.connect(host,port)
