@@ -194,7 +194,8 @@ def chop_tree(event,main,uuid):
     # TBI
     # deregister mousemove function so main stops drawing it
     main.context.tobecleaned.append([main.context.onMouseMove, uuid])
-
+    del main.gui.permanent_draw_queue[uuid]
+    pygame.mouse.set_visible(1)
     # get the tile position 
     cubepos = main.board.check_valid_tree_coord(event.pos)
     if cubepos is not False:
@@ -204,9 +205,12 @@ def chop_tree(event,main,uuid):
             main.console('You can chop only large trees'); return
         if tileocc.owner.idx != main.current_player.idx:
             main.console("That's not your Tree!"); return
+        if main.network is True:
+            main.client.send('%d sold tree %d_%d_%d' % ((main.current_player.idx,)+tuple(cubepos)))
         # after all these checks we know that is a valid treepos 
         # - remove it - add it to stack/graveyard - get points for the current player
         main.board.chop_tree(cubepos,tileocc)
+    main.context.tobecleaned.append([main.context.onMouseUp, uuid])
     return
 
 def drop_tree(event,main,uuid,tree=None):

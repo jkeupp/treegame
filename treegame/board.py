@@ -312,7 +312,7 @@ class HUD(object):
         if self.seedsprites[self.main.current_player.idx].rect.collidepoint(event.pos) is 0: return
         if self.main.current_player.n(0,'available') == 0: 
             # TBI: drop a note that it's not possible
-            print('no more seedlings available!')
+            self.main.console('no more seedlings available!')
             return
         #ok, we got it! let's do something
         move_callback_identifier = uuid.uuid4()
@@ -334,7 +334,7 @@ class HUD(object):
         if self.smallsprites[self.main.current_player.idx].rect.collidepoint(event.pos) is 0: return
         if self.main.current_player.n(1,'available') == 0: 
             # TBI: drop a note that it's not possible
-            print('no more smalltrees available!')
+            self.main.console('no more smalltrees available!')
             return
         #ok, we got it! let's do something
         move_callback_identifier = uuid.uuid4()
@@ -356,7 +356,7 @@ class HUD(object):
         if self.mediumsprites[self.main.current_player.idx].rect.collidepoint(event.pos) is 0: return
         if self.main.current_player.n(2,'available') == 0: 
             # TBI: drop a note that it's not possible
-            print('no more mediumtrees available!')
+            self.main.console('no more mediumtrees available!')
             return
         #ok, we got it! let's do something
         move_callback_identifier = uuid.uuid4()
@@ -378,7 +378,7 @@ class HUD(object):
         if self.largesprites[self.main.current_player.idx].rect.collidepoint(event.pos) is 0: return
         if self.main.current_player.n(3,'available') == 0: 
             # TBI: drop a note that it's not possible
-            print('no more largetrees available!')
+            self.main.console('no more largetrees available!')
             return
         #ok, we got it! let's do something
         move_callback_identifier = uuid.uuid4()

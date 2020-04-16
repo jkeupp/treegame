@@ -189,6 +189,10 @@ class Client(object):
                 self.main.board.add_tree(numpy.array(pos,dtype='int'),tree)
                 pass
             elif txt.count(' sold tree' ) != 0:
+                # Needs to be checked if any of that works!
+                pos = tuple([int(x) for x in txt.split('sold tree')[-1].split(' ')[-1].split('_')])
+                tree = main.board.field.get_tile_occupation(numpy.array(pos,dtype='int'))
+                self.main.board.chop_tree(numpy.array(pos,dtype='int'),tree)
                 pass
             elif txt.count(' is done' ) != 0:
                 self.main.logic.cycle_players()
