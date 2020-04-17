@@ -1,5 +1,6 @@
 import pygame
 import time
+import os
 from . import board
 from .lib import Player, Tree
 from . import context
@@ -7,6 +8,7 @@ from . import logic
 from . import console
 from . import settings
 from . import network
+from pathlib import Path
 
 class treegame(object):
     def __init__(self,nplayers=2,network=False,imgpath = 'default'):
@@ -19,7 +21,7 @@ class treegame(object):
         self.network = network
         if imgpath == 'default':
             import inspect
-            self.imgpath = inspect.getfile(self.__class__).rsplit('/',2)[0] + '/images/'     ##retrieve from where we are now
+            self.imgpath = Path(Path(inspect.getfile(self.__class__)).as_posix().rsplit('/',2)[0]) / 'images'     ##retrieve from where we are now
         else:
             self.imgpath = imgpath
         return

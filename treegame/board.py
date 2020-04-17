@@ -133,7 +133,7 @@ class HUD(object):
         self.main.gui.hud = self
         self.size = numpy.array(size,dtype='int')
         self.pos = numpy.array(pos,dtype='int')
-        self.background_image = pygame.image.load(self.main.imgpath+"hud.png")
+        self.background_image = pygame.image.load(str(self.main.imgpath / "hud.png"))
         self.dx_sun = settings.sun_box_size / (len(self.players) +1)
         self.dx_treerow = settings.tree_row_height / (len(self.players) +1)
         self.make_tree_sprites()
@@ -415,8 +415,8 @@ class GUI(object):
         return
 
     def load_sun_and_arrows(self):
-        self.sun_and_arrows = pg.image.load(self.image_dir+'sun_and_arrows_90.png').convert_alpha()
-        self.arrows = pg.image.load(self.image_dir+'arrow_90.png').convert_alpha()
+        self.sun_and_arrows = pg.image.load(str(self.image_dir / 'sun_and_arrows_90.png')).convert_alpha()
+        self.arrows = pg.image.load(str(self.image_dir / 'arrow_90.png')).convert_alpha()
         self.sun_and_arrows_rotated = {}; self.arrows_rotated = {}
         # pre-rotate and store copies in a dictionary for quick access
         # sun can be at 30, 90, 150, 210, 270 and 330 degrees
@@ -427,10 +427,10 @@ class GUI(object):
 
 
     def load_tree_images(self):
-        self.seedling = pg.image.load(self.image_dir+'tree0_90.png').convert_alpha()
-        self.smalltree = pg.image.load(self.image_dir+'tree1_90.png').convert_alpha()
-        self.mediumtree = pg.image.load(self.image_dir+'tree2_90.png').convert_alpha()
-        self.largetree = pg.image.load(self.image_dir+'tree3_90.png').convert_alpha()
+        self.seedling = pg.image.load(str(self.image_dir / 'tree0_90.png')).convert_alpha()
+        self.smalltree = pg.image.load(str(self.image_dir / 'tree1_90.png')).convert_alpha()
+        self.mediumtree = pg.image.load(str(self.image_dir / 'tree2_90.png')).convert_alpha()
+        self.largetree = pg.image.load(str(self.image_dir / 'tree3_90.png')).convert_alpha()
         self.seedlings = {i:util.colorize(self.seedling,PLAYER_COLORS[i]) for i in range(len(self.board.players))}
         self.smalltrees = {i:util.colorize(self.smalltree,PLAYER_COLORS[i]) for i in range(len(self.board.players))}
         self.mediumtrees = {i:util.colorize(self.mediumtree,PLAYER_COLORS[i]) for i in range(len(self.board.players))}
@@ -439,7 +439,7 @@ class GUI(object):
                           1:self.smalltrees,
                           2:self.mediumtrees,
                           3:self.largetrees}
-        self.axeimg = pg.image.load(self.image_dir+'axe_90.png').convert_alpha()
+        self.axeimg = pg.image.load(str(self.image_dir / 'axe_90.png')).convert_alpha()
         self.axeimg_gray = util.colorize(self.axeimg,[120,120,120])
 
 
