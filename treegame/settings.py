@@ -10,7 +10,8 @@ ny = 1200
 hex_radius = 56
 
 board_center = numpy.array([nx/2,nx/2],dtype='int')
-
+gamelength = {'default':(4,0),
+              'long': (5,0)} # those are termination criteria (epoch,tick)
 # console settings
 
 console_text_maxlen = 250 # px 
@@ -23,6 +24,9 @@ hudpos = numpy.array([800,0],dtype='int')
 board_size_radius = 3
 
 axepos = numpy.array([750,750],dtype='int')
+epochpos1 = numpy.array([690,10],dtype='int')
+epochpos2 = numpy.array([690,30],dtype='int')
+initphase_labelpos = numpy.array([690,50],dtype='int')
 
 tree_imgpos_offset   =  numpy.array([50,275],dtype='int') 
 tree_row_height      =  numpy.array([0,150],dtype='int')
@@ -164,3 +168,12 @@ num_smalltrees  = 8
 num_mediumtrees = 4
 num_largetrees  = 2
 
+
+def endgame_sunpoints2points(sunpoints):
+    if sunpoints == 0:
+        return 0
+    elif [1,2].count(sunpoints) != 0: 
+        return 1
+    else:
+        return numpy.min([7,int(numpy.floor((sunpoints+3)/3))])
+    return

@@ -39,6 +39,8 @@ RED   = [255,0,0]
 GREEN = [0,255,0]
 BLUE  =  [0,0,255]
 BACKGROUND = [188,238,104]
+BACKGROUND = [180,240,255]
+
 BLACK = [0,0,0]
 
 GREEN2 = [141, 207, 104]
@@ -171,6 +173,7 @@ class HUD(object):
         self.draw_cycle_button()
         self.draw_buy_buttons()
         self.draw_axe()
+        self.draw_epoch()
         pass
 
     def draw_sunpoints(self,player):
@@ -186,6 +189,19 @@ class HUD(object):
                    int(numpy.round(self.pos[1]+(i+1) * self.dx_sun - text.get_height()/2.0)))
             self.screen.blit(text,pos)
     
+    def draw_epoch(self):
+        text1 = self.gui.font_medium.render('epoch : %d' % (self.main.logic.round),
+                            True,BLACK) 
+        text2 = self.gui.font_medium.render('tick  : %d' % (self.main.logic.tick),
+                            True,BLACK) 
+        self.screen.blit(text1,settings.epochpos1)
+        self.screen.blit(text2,settings.epochpos2)
+        if self.main.logic.startup_rounds is not True:
+            return
+        text_init = self.gui.font_medium.render('init phase' ,True,BLACK)
+        self.screen.blit(text_init,settings.initphase_labelpos)
+        return
+
     def draw_seedling_box(self,player):
         self.seedsprites[player.idx].draw(self.screen)
         self.main.context.onMouseDown['seedlingCallback'] = self.set_seedling_callback

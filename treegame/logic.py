@@ -93,8 +93,32 @@ class logic(object):
             self.round += 1
         else:
             self.tick += 1
+        self.check_endgame()
         self.sunpos = (self.sunpos + 60) % 360
         return
+
+    def check_endgame(self):
+        term = self.main.settings.gamelength[self.main.gamelength]
+        if (self.round >= term[0]) and  (self.tick == term[1]):
+            # the end has come. 
+            self.apply_endgame()
+        return
+
+    def apply_endgame(self):
+        self.main.console('the end has come!')
+        for i in range(self.main.nplayers):
+            pi = self.main.players[i]
+        # add one point per three sunpoints
+        # print points for each player
+        maxpoints, bestplayer = 0,''
+        for i in range(self.main.nplayers):
+            pi = self.main.players[i]
+            pi.points += settings.endgame_sunpoints2points(pi.sunpoints)
+            self.main.console(' %s got %3d points' % (pi.name,pi.points))
+            if pi.points >= maxpoints:
+                bestplayer = pi.name
+                maxpoints = pi.points
+        self.main.console('%s won !!! yay !!!' % (bestplayer,))
 
     def let_the_sun_shine(self):
         # get the rays as coordinates

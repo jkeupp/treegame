@@ -11,7 +11,19 @@ from . import network
 from pathlib import Path
 
 class treegame(object):
-    def __init__(self,nplayers=2,network=False,imgpath = 'default'):
+    def __init__(self,nplayers=2,network=False,gamelength='default',imgpath = 'default'):
+        """ Initializes the Treegame
+        
+        Args:
+            nplayers (int, optional): Number of players. Defaults to 2.
+            network (bool, optional): if True, game is run as a network game. Defaults to False.
+            gamelength (str, optional): macro for different game length settings. Defaults to 'default'.
+                                        'default': three epochs,
+                                        'long': four epochs
+            imgpath (str, optional): [description]. Defaults to 'default'.
+        """     
+        assert gamelength in ['long','default']
+        self.gamelength = gamelength
         self.nplayers = nplayers
         self.init_players()
         self.starting_player = 0
